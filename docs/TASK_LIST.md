@@ -15,16 +15,16 @@
 - [x] Initialize Hilt (`@HiltAndroidApp` Application class).
 
 ## Phase 2: Data Layer
-- [ ] Create Data Models.
-    - [ ] `HaStateResponse`
-    - [ ] `HaAttributes`
-- [ ] Create `HaApiService` interface (Retrofit).
-    - [ ] Define `GET /api/states/{entity_id}` endpoint.
-- [ ] Create `SettingsRepository`.
-    - [ ] Implement DataStore for `ha_base_url`, `ha_token`, `target_entity_id`, `polling_interval`, `is_polling_enabled`, `is_spoofing_enabled`.
-- [ ] Create Hilt Modules.
-    - [ ] `NetworkModule` (Provides Retrofit, OkHttp).
-    - [ ] `DataModule` (Provides Repository, DataStore).
+- [x] Create Data Models.
+    - [x] `HaStateResponse`
+    - [x] `HaAttributes`
+- [x] Create `HaApiService` interface (Retrofit).
+    - [x] Define `GET /api/states/{entity_id}` endpoint.
+- [x] Create `SettingsRepository`.
+    - [x] Implement DataStore for `ha_base_url`, `ha_token`, `target_entity_id`, `polling_interval`, `is_polling_enabled`, `is_spoofing_enabled`.
+- [x] Create Hilt Modules.
+    - [x] `NetworkModule` (Provides Retrofit, OkHttp).
+    - [x] `DataModule` (Provides Repository, DataStore).
 
 ## Phase 3: Service Layer (Core Logic)
 - [ ] Create `LocationSpooferService`.
