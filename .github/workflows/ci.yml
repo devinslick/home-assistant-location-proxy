@@ -25,16 +25,8 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-      - name: Install Gradle & ensure wrapper (if not committed)
-        run: |
-          set -e
-          # Print installed gradle version (if any)
-          gradle --version || true
-          # Generate a wrapper if not present, using a compatible Gradle version
-          if [ ! -f ./gradlew ]; then
-            gradle wrapper --gradle-version 8.2 --distribution-type bin || true
-          fi
-
-      - name: Run Gradle tests and lint
-        run: |
-          ./gradlew --no-daemon build testDebugUnitTest lint
+      - name: Run Gradle build, tests, and lint (Gradle Build Action)
+        uses: gradle/gradle-build-action@v3
+        with:
+          arguments: build testDebugUnitTest lint
+          gradle-version: 8.2
