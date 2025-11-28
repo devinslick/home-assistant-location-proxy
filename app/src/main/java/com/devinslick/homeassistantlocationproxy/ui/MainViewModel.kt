@@ -3,6 +3,7 @@ package com.devinslick.homeassistantlocationproxy.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devinslick.homeassistantlocationproxy.data.HaAttributes
+import com.devinslick.homeassistantlocationproxy.permissions.PermissionChecker
 import com.devinslick.homeassistantlocationproxy.data.SettingsRepository
 import com.devinslick.homeassistantlocationproxy.network.HaNetworkRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider,
     private val settingsEditor: com.devinslick.homeassistantlocationproxy.data.SettingsEditor,
-    private val haRepository: com.devinslick.homeassistantlocationproxy.network.HaRepository
+    private val haRepository: com.devinslick.homeassistantlocationproxy.network.HaRepository,
+    private val permissionChecker: PermissionChecker
 ) : ViewModel() {
 
     private val _isPollingEnabled = MutableStateFlow(false)
@@ -44,6 +46,15 @@ class MainViewModel @Inject constructor(
     private val _statusMessage = MutableStateFlow("Stopped")
     val statusMessage: StateFlow<String> = _statusMessage.asStateFlow()
 
+    private val _hasLocationPermission = MutableStateFlow(false)
+    val hasLocationPermission: StateFlow<Boolean> = _hasLocationPermission.asStateFlow()
+
+    private val _hasNotificationPermission = MutableStateFlow(false)
+    val hasNotificationPermission: StateFlow<Boolean> = _hasNotificationPermission.asStateFlow()
+
+    private val _isMockLocationApp = MutableStateFlow(false)
+    val isMockLocationApp: StateFlow<Boolean> = _isMockLocationApp.asStateFlow()
+
     init {
         viewModelScope.launch {
             settings.haBaseUrl.collect { _haBaseUrl.value = it }
@@ -62,6 +73,9 @@ class MainViewModel @Inject constructor(
         }
         viewModelScope.launch {
             settings.isSpoofingEnabled.collect { _isSpoofingEnabled.value = it }
+        }
+        viewModelScope.launch {
+            refreshPermissions()
         }
     }
 
@@ -108,5 +122,11 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun refreshPermissions() {
+        _hasLocationPermission.value = permissionChecker.hasFineLocationPermission()
+        _hasNotificationPermission.value = permissionChecker.hasNotificationPermission()
+        _isMockLocationApp.value = permissionChecker.isMockLocationAppSelected()
     }
 }

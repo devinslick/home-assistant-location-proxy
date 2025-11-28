@@ -29,7 +29,20 @@ class MainActivity : ComponentActivity() {
                 Surface {
                     NavHost(navController = navController, startDestination = "dashboard") {
                         composable("dashboard") {
-                            DashboardScreen(viewModel = mainViewModel, onOpenSettings = { navController.navigate("settings") })
+                            DashboardScreen(
+                                viewModel = mainViewModel,
+                                onOpenSettings = { navController.navigate("settings") },
+                                onOpenAppSettings = {
+                                    val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                    val uri = android.net.Uri.fromParts("package", packageName, null)
+                                    intent.data = uri
+                                    startActivity(intent)
+                                },
+                                onOpenDevOptions = {
+                                    val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+                                    startActivity(intent)
+                                }
+                            )
                         }
                         composable("settings") {
                             SettingsScreen(viewModel = mainViewModel, onClose = { navController.popBackStack() })
