@@ -40,17 +40,17 @@
 - [ ] Connect Service to Repository to observe settings changes.
 
 ## Phase 4: UI Layer
-- [ ] Create `MainViewModel`.
-    - [ ] Expose UI State (Service status, Last Location, Error messages).
-    - [ ] Functions to toggle polling/spoofing.
-- [ ] Build `SettingsScreen`.
-    - [ ] Input fields for HA URL, Token, Entity ID.
-    - [ ] Save buttons / Auto-save logic.
-- [ ] Build `DashboardScreen`.
-    - [ ] Status Header (Running/Stopped).
-    - [ ] Google Map View (centered on current/spoofed location).
-    - [ ] Control Toggles.
-- [ ] Set up Navigation Host.
+- [x] Create `MainViewModel`.
+    - [x] Expose UI State (Service status, Last Location, Error messages).
+    - [x] Functions to toggle polling/spoofing.
+- [x] Build `SettingsScreen`.
+    - [x] Input fields for HA URL, Token, Entity ID.
+    - [x] Save buttons / Auto-save logic.
+- [x] Build `DashboardScreen`.
+    - [x] Status Header (Running/Stopped).
+    - [x] Google Map View (centered on current/spoofed location).
+    - [x] Control Toggles.
+- [x] Set up Navigation Host.
 
 ## Phase 5: System Integration & Polish
 - [ ] Implement `BootReceiver`.
