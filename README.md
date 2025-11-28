@@ -13,6 +13,11 @@ Build & Run:
 - Let Android Studio sync Gradle and download the dependencies.
 - Run the `app` module on an Android emulator or device.
 
+Run tests locally:
+- Unit tests: `./gradlew test` (or `gradlew.bat test` on Windows)
+- Android lint: `./gradlew lint` (or `gradlew.bat lint` on Windows)
+- CI workflow runs build, unit tests, and lint on push/PR via `.github/workflows/ci.yml`.
+
 Notes:
 - The project uses Hilt for dependency injection, Retrofit for networking, and Jetpack DataStore for local persistence.
 
