@@ -17,7 +17,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider,
     private val settingsEditor: com.devinslick.homeassistantlocationproxy.data.SettingsEditor,
-    private val haNetworkRepository: HaNetworkRepository
+    private val haRepository: com.devinslick.homeassistantlocationproxy.network.HaRepository
 ) : ViewModel() {
 
     private val _isPollingEnabled = MutableStateFlow(false)
@@ -92,7 +92,7 @@ class MainViewModel @Inject constructor(
     fun refreshLatestState() {
         viewModelScope.launch {
             _statusMessage.value = "Refreshing..."
-            when (val r = haNetworkRepository.fetchEntityState()) {
+            when (val r = haRepository.fetchEntityState()) {
                 is com.devinslick.homeassistantlocationproxy.network.HaResult.Success -> {
                     _lastAttributes.value = r.state.attributes
                     _statusMessage.value = "OK"
