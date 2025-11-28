@@ -64,3 +64,7 @@
     - [ ] Handle Network Errors (Retries, User Notification).
     - [ ] Handle Invalid Token/Auth errors.
 - [ ] UI Polish (Material 3 styling).
+
+## QA & CI
+- [x] Add unit test dependencies and basic tests for data and UI.
+- [x] Add CI workflow for build, test, and lint.
