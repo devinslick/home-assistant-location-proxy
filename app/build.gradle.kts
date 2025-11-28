@@ -69,8 +69,8 @@ dependencies {
     // DataStore preferences
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
-    // Google Maps Compose (placeholder)
-    // implementation("com.google.maps.android:maps-compose:2.11.0")
+    // Google Maps Compose
+    implementation("com.google.maps.android:maps-compose:2.12.0")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")

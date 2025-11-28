@@ -1,18 +1,18 @@
 # Implementation Task List
 
 ## Phase 1: Project Setup & Scaffolding
-- [ ] Initialize new Android Project (Kotlin, Jetpack Compose).
-- [ ] Configure `build.gradle.kts` (Module & Project level).
-    - [ ] Add Hilt dependencies (Dagger Hilt).
-    - [ ] Add Retrofit & OkHttp dependencies.
-    - [ ] Add Jetpack DataStore dependencies.
-    - [ ] Add Google Maps Compose dependencies.
-    - [ ] Add Navigation Compose dependencies.
-- [ ] Set up `AndroidManifest.xml`.
-    - [ ] Add permissions: `INTERNET`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`.
-    - [ ] Define `LocationSpooferService`.
-    - [ ] Define `BootReceiver`.
-- [ ] Initialize Hilt (`@HiltAndroidApp` Application class).
+- [x] Initialize new Android Project (Kotlin, Jetpack Compose).
+- [x] Configure `build.gradle.kts` (Module & Project level).
+    - [x] Add Hilt dependencies (Dagger Hilt).
+    - [x] Add Retrofit & OkHttp dependencies.
+    - [x] Add Jetpack DataStore dependencies.
+    - [x] Add Google Maps Compose dependencies.
+    - [x] Add Navigation Compose dependencies.
+- [x] Set up `AndroidManifest.xml`.
+    - [x] Add permissions: `INTERNET`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `POST_NOTIFICATIONS`, `RECEIVE_BOOT_COMPLETED`.
+    - [x] Define `LocationSpooferService`.
+    - [x] Define `BootReceiver`.
+- [x] Initialize Hilt (`@HiltAndroidApp` Application class).
 
 ## Phase 2: Data Layer
 - [ ] Create Data Models.
