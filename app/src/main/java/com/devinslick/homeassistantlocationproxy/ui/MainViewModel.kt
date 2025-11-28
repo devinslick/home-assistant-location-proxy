@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val settings: SettingsRepository,
+    private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider,
     private val haNetworkRepository: HaNetworkRepository
 ) : ViewModel() {
 

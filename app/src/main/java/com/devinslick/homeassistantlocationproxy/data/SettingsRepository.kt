@@ -17,7 +17,7 @@ import javax.inject.Singleton
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Singleton
-class SettingsRepository @Inject constructor(@ApplicationContext private val context: Context) {
+class SettingsRepository @Inject constructor(@ApplicationContext private val context: Context) : SettingsProvider {
 
     companion object {
         private val KEY_HA_BASE_URL = stringPreferencesKey("ha_base_url")
@@ -32,12 +32,12 @@ class SettingsRepository @Inject constructor(@ApplicationContext private val con
 
     private val ds = context.dataStore
 
-    val haBaseUrl: Flow<String?> = ds.data.map { prefs -> prefs[KEY_HA_BASE_URL] }
-    val haToken: Flow<String?> = ds.data.map { prefs -> prefs[KEY_HA_TOKEN] }
-    val entityId: Flow<String?> = ds.data.map { prefs -> prefs[KEY_ENTITY_ID] }
-    val pollingInterval: Flow<Long> = ds.data.map { prefs -> prefs[KEY_POLLING_INTERVAL] ?: DEFAULT_POLLING_INTERVAL }
-    val isPollingEnabled: Flow<Boolean> = ds.data.map { prefs -> prefs[KEY_POLLING_ENABLED] ?: false }
-    val isSpoofingEnabled: Flow<Boolean> = ds.data.map { prefs -> prefs[KEY_SPOOFING_ENABLED] ?: false }
+    override val haBaseUrl: Flow<String?> = ds.data.map { prefs -> prefs[KEY_HA_BASE_URL] }
+    override val haToken: Flow<String?> = ds.data.map { prefs -> prefs[KEY_HA_TOKEN] }
+    override val entityId: Flow<String?> = ds.data.map { prefs -> prefs[KEY_ENTITY_ID] }
+    override val pollingInterval: Flow<Long> = ds.data.map { prefs -> prefs[KEY_POLLING_INTERVAL] ?: DEFAULT_POLLING_INTERVAL }
+    override val isPollingEnabled: Flow<Boolean> = ds.data.map { prefs -> prefs[KEY_POLLING_ENABLED] ?: false }
+    override val isSpoofingEnabled: Flow<Boolean> = ds.data.map { prefs -> prefs[KEY_SPOOFING_ENABLED] ?: false }
 
     suspend fun setHaBaseUrl(url: String?) {
         ds.edit { prefs ->

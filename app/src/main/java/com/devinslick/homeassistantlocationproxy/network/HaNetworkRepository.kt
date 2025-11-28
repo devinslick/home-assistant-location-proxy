@@ -30,7 +30,7 @@ sealed interface HaError {
 @Singleton
 class HaNetworkRepository @Inject constructor(
     private val apiFactory: HaApiFactory,
-    private val settings: SettingsRepository
+    private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider
 ) {
 
     private val logTag = "HaNetworkRepository"
