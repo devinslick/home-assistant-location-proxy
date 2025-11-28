@@ -17,7 +17,7 @@ import javax.inject.Singleton
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Singleton
-class SettingsRepository @Inject constructor(@ApplicationContext private val context: Context) : SettingsProvider {
+class SettingsRepository @Inject constructor(@ApplicationContext private val context: Context) : SettingsProvider, SettingsEditor {
 
     companion object {
         private val KEY_HA_BASE_URL = stringPreferencesKey("ha_base_url")

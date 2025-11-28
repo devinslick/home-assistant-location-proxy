@@ -16,6 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider,
+    private val settingsEditor: com.devinslick.homeassistantlocationproxy.data.SettingsEditor,
     private val haNetworkRepository: HaNetworkRepository
 ) : ViewModel() {
 
@@ -65,27 +66,27 @@ class MainViewModel @Inject constructor(
     }
 
     fun setPollingEnabled(enabled: Boolean) {
-        viewModelScope.launch { settings.setIsPollingEnabled(enabled) }
+        viewModelScope.launch { settingsEditor.setIsPollingEnabled(enabled) }
     }
 
     fun setSpoofingEnabled(enabled: Boolean) {
-        viewModelScope.launch { settings.setIsSpoofingEnabled(enabled) }
+        viewModelScope.launch { settingsEditor.setIsSpoofingEnabled(enabled) }
     }
 
     fun updateBaseUrl(url: String?) {
-        viewModelScope.launch { settings.setHaBaseUrl(url) }
+        viewModelScope.launch { settingsEditor.setHaBaseUrl(url) }
     }
 
     fun updateToken(token: String?) {
-        viewModelScope.launch { settings.setHaToken(token) }
+        viewModelScope.launch { settingsEditor.setHaToken(token) }
     }
 
     fun updateEntityId(entity: String?) {
-        viewModelScope.launch { settings.setEntityId(entity) }
+        viewModelScope.launch { settingsEditor.setEntityId(entity) }
     }
 
     fun updatePollingInterval(seconds: Long) {
-        viewModelScope.launch { settings.setPollingInterval(seconds) }
+        viewModelScope.launch { settingsEditor.setPollingInterval(seconds) }
     }
 
     fun refreshLatestState() {
