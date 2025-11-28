@@ -82,4 +82,6 @@ This document provides clear, compact instructions for an assistant (Copilot) wh
 
 ## Package name reminder
 - Use `com.devinslick.homeassistantlocationproxy` as the package name in code and `applicationId` in Gradle.
+ - CI uses `gradle/gradle-build-action` and the repository does not commit `gradle-wrapper.jar` to avoid repository bloat.
+ - When contributing: use `gradle` locally or generate a wrapper if you prefer to use `./gradlew` locally; CI will run using the specified Gradle version.
 

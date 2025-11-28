@@ -32,3 +32,6 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Ignore generated gradle wrapper jar to keep repo size small (CI uses gradle action)
+gradle/wrapper/gradle-wrapper.jar

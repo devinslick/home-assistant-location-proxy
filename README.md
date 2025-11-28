@@ -18,6 +18,13 @@ Run tests locally:
 - Android lint: `./gradlew lint` (or `gradlew.bat lint` on Windows)
 - CI workflow runs build, unit tests, and lint on push/PR via `.github/workflows/ci.yml`.
 
+Gradle wrapper & CI notes:
+- This repository currently does not commit `gradle/wrapper/gradle-wrapper.jar` to avoid repository bloat.
+- CI uses `gradle/gradle-build-action@v3` to download and run a designated Gradle version (8.2), so pushes/PRs do not require the JAR in the repository.
+- If you'd like to run `./gradlew` locally, you can either install Gradle locally and run `gradle wrapper --gradle-version 8.2` to generate the wrapper JAR, or run Gradle directly if installed:
+	- Install Gradle and run: `gradle build` (which doesn't rely on wrapper)
+	- Or use the `gradlew` script after generating the wrapper JAR in `gradle/wrapper`.
+
 Notes:
 - The project uses Hilt for dependency injection, Retrofit for networking, and Jetpack DataStore for local persistence.
 
