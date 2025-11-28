@@ -1,4 +1,4 @@
-package com.example.locationproxy
+package com.devinslick.homeassistantlocationproxy
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

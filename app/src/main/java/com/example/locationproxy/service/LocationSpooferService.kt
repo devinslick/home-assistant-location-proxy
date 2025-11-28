@@ -1,4 +1,4 @@
-package com.example.locationproxy.service
+package com.devinslick.homeassistantlocationproxy
 
 import android.app.Service
 import android.content.Intent

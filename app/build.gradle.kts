@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.locationproxy"
+    namespace = "com.devinslick.homeassistantlocationproxy"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.locationproxy"
+        applicationId = "com.devinslick.homeassistantlocationproxy"
         minSdk = 24
         targetSdk = 34
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.example.locationproxy
+package com.devinslick.homeassistantlocationproxy
 
 import android.content.BroadcastReceiver
 import android.content.Context

@@ -1,4 +1,4 @@
-package com.example.locationproxy
+package com.devinslick.homeassistantlocationproxy
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
