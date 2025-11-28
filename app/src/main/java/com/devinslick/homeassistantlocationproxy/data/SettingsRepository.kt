@@ -1,4 +1,4 @@
-package com.example.locationproxy.data
+package com.devinslick.homeassistantlocationproxy.data
 
 import android.content.Context
 import androidx.datastore.core.DataStore

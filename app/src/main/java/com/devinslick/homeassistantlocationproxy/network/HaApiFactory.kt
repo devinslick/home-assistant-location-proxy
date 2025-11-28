@@ -1,11 +1,9 @@
 package com.devinslick.homeassistantlocationproxy.network
 
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 /**
  * Provides a simple factory to create a `HaApiService` with a runtime base URL and token.

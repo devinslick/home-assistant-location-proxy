@@ -1,4 +1,4 @@
-package com.example.locationproxy.di
+package com.devinslick.homeassistantlocationproxy.di
 
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences

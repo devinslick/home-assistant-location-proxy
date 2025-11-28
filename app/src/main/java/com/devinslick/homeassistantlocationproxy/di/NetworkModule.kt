@@ -1,6 +1,6 @@
-package com.example.locationproxy.di
+package com.devinslick.homeassistantlocationproxy.di
 
-import com.example.locationproxy.network.HaApiFactory
+import com.devinslick.homeassistantlocationproxy.network.HaApiFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
