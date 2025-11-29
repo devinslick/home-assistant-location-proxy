@@ -74,9 +74,10 @@ dependencies {
     // AndroidX Security Crypto for EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0")
 
-    // Google Maps Compose
-    implementation("com.google.maps.android:maps-compose:2.12.0")
-    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    // OpenStreetMap (osmdroid)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
+    implementation("org.osmdroid:osmdroid-wms:6.1.18")
+    implementation("org.osmdroid:osmdroid-mapsforge:6.1.18")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")

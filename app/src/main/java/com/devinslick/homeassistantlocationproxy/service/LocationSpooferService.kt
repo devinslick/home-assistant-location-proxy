@@ -6,10 +6,12 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.devinslick.homeassistantlocationproxy.R
@@ -62,7 +64,24 @@ class LocationSpooferService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, buildNotification("Initializing..."))
+        Log.d("LocationSpooferService", "onStartCommand: SDK=${Build.VERSION.SDK_INT}")
+        if (Build.VERSION.SDK_INT >= 29) {
+            val type = if (Build.VERSION.SDK_INT >= 34) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            } else {
+                0 // older versions don't strictly enforce type in startForeground, but 29+ supports the signature
+            }
+            // If SDK is 34+, we MUST provide the type. If between 29 and 33, we can provide it or 0.
+            // To be safe for 34+, we provide the specific type.
+            // For < 34, passing 0 or a valid type is usually fine, but let's stick to the specific requirement.
+            if (Build.VERSION.SDK_INT >= 34) {
+                 startForeground(NOTIFICATION_ID, buildNotification("Initializing..."), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION)
+            } else {
+                 startForeground(NOTIFICATION_ID, buildNotification("Initializing..."))
+            }
+        } else {
+            startForeground(NOTIFICATION_ID, buildNotification("Initializing..."))
+        }
 
         scope.launch {
             settings.isPollingEnabled.collect { pollingEnabled ->
@@ -181,7 +200,7 @@ class LocationSpooferService : Service() {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("HA Location Spoofer")
             .setContentText(contentText)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setOngoing(true)
         return builder.build()
     }

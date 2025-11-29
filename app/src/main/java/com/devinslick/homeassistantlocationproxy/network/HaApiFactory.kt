@@ -35,7 +35,11 @@ class HaApiFactory(private val httpClient: OkHttpClient) {
     }
 
     private fun normalizeBaseUrl(url: String): String {
+        var normalized = url
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            normalized = "http://$normalized"
+        }
         // ensure Url ends with a trailing slash for Retrofit
-        return if (!url.endsWith("/")) "$url/" else url
+        return if (!normalized.endsWith("/")) "$normalized/" else normalized
     }
 }

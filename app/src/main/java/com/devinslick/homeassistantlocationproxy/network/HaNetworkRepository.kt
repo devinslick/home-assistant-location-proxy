@@ -50,7 +50,12 @@ class HaNetworkRepository @Inject constructor(
             return HaResult.Failure(HaError.MissingConfig)
         }
 
-        val api = apiFactory.create(baseUrl, token)
+        val api = try {
+            apiFactory.create(baseUrl, token)
+        } catch (e: Exception) {
+            Log.e(logTag, "Failed to create API client: ${e.message}")
+            return HaResult.Failure(HaError.Network(e))
+        }
 
         // Retry logic for transient errors (network / server error codes)
         val maxRetries = 3
