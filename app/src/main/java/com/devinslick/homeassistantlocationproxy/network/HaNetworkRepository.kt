@@ -39,7 +39,7 @@ class HaNetworkRepository @Inject constructor(
      * Attempt to fetch the HA entity state using current settings (baseUrl, token, entityId).
      * Returns either Success(state) or Failure(HaError).
      */
-    suspend fun fetchEntityState(): HaResult {
+    override suspend fun fetchEntityState(): HaResult {
         // Read settings once (suspending) to ensure consistency per call
         val baseUrl = settings.haBaseUrl.first()
         val token = settings.haToken.first()
@@ -52,8 +52,14 @@ class HaNetworkRepository @Inject constructor(
 
         val api = apiFactory.create(baseUrl, token)
 
-        try {
-            val response = api.getState(entityId)
+        // Retry logic for transient errors (network / server error codes)
+        val maxRetries = 3
+        var attempt = 0
+        var backoff = 1000L
+        while (true) {
+            attempt++
+            try {
+                val response = api.getState(entityId)
             if (response.isSuccessful) {
                 val body = response.body()
                 if (body != null) {
@@ -72,12 +78,24 @@ class HaNetworkRepository @Inject constructor(
                     }
                 }
             }
-        } catch (e: IOException) {
-            Log.w(logTag, "Network error when calling HA API", e)
-            return HaResult.Failure(HaError.Network(e))
-        } catch (t: Throwable) {
-            Log.w(logTag, "Unexpected error when calling HA API", t)
-            return HaResult.Failure(HaError.Network(t))
+            } catch (e: IOException) {
+                Log.w(logTag, "Network error when calling HA API (attempt=$attempt)", e)
+                if (attempt >= maxRetries) return HaResult.Failure(HaError.Network(e))
+                // Exponential backoff
+                kotlinx.coroutines.delay(backoff)
+                backoff *= 2
+                continue
+            } catch (t: Throwable) {
+                Log.w(logTag, "Unexpected error when calling HA API (attempt=$attempt)", t)
+                if (attempt >= maxRetries) return HaResult.Failure(HaError.Network(t))
+                kotlinx.coroutines.delay(backoff)
+                backoff *= 2
+                continue
+            }
+            // If we reached here, we completed successfully or returned for a specific error
+            break
         }
+        // Shouldn't reach here normally
+        return HaResult.Failure(HaError.Unknown(null))
     }
 }

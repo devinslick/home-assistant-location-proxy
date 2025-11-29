@@ -20,7 +20,7 @@ This document provides clear, compact instructions for an assistant (Copilot) wh
 ## Keys & Config
 - DataStore preference keys (use these constants in `SettingsRepository`):
   - `ha_base_url` (String) — Home Assistant base URL
-  - `ha_token` (String) — Long-lived access token (store securely)
+  - `ha_token` (String) — Long-lived access token (stored securely via EncryptedSharedPreferences)
   - `target_entity_id` (String) — Entity to poll (e.g., `device_tracker.my_car`)
   - `polling_interval_seconds` (Long) — Polling interval (default 30s)
   - `is_polling_enabled` (Boolean)

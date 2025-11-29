@@ -21,23 +21,24 @@
 - [x] Create `HaApiService` interface (Retrofit).
     - [x] Define `GET /api/states/{entity_id}` endpoint.
 - [x] Create `SettingsRepository`.
-    - [x] Implement DataStore for `ha_base_url`, `ha_token`, `target_entity_id`, `polling_interval`, `is_polling_enabled`, `is_spoofing_enabled`.
+    - [x] Implement DataStore for `ha_base_url`, `target_entity_id`, `polling_interval`, `is_polling_enabled`, `is_spoofing_enabled`.
+    - [x] Implement secure token storage for `ha_token` (EncryptedSharedPreferences)
 - [x] Create Hilt Modules.
     - [x] `NetworkModule` (Provides Retrofit, OkHttp).
     - [x] `DataModule` (Provides Repository, DataStore).
 
 ## Phase 3: Service Layer (Core Logic)
-- [ ] Create `LocationSpooferService`.
-    - [ ] Implement `onStartCommand` for Foreground Service promotion.
-    - [ ] Create Notification channel and persistent notification.
-- [ ] Implement Polling Logic.
-    - [ ] Create a Coroutine loop that runs when `is_polling_enabled` is true.
-    - [ ] Call `HaApiService` to fetch location.
-- [ ] Implement Mock Location Logic.
-    - [ ] Acquire `LocationManager`.
-    - [ ] Check for `ACCESS_MOCK_LOCATION` permission/capability.
-    - [ ] Implement `setTestProviderLocation` to inject coordinates.
-- [ ] Connect Service to Repository to observe settings changes.
++ [x] Create `LocationSpooferService`.
+    - [x] Implement `onStartCommand` for Foreground Service promotion.
+    - [x] Create Notification channel and persistent notification.
++ [x] Implement Polling Logic.
+    - [x] Create a Coroutine loop that runs when `is_polling_enabled` is true.
+    - [x] Call `HaApiService` to fetch location.
++ [x] Implement Mock Location Logic.
+    - [x] Acquire `LocationManager`.
+    - [x] Check for `ACCESS_MOCK_LOCATION` permission/capability (best-effort checks & error handling).
+    - [x] Implement `setTestProviderLocation` to inject coordinates.
++ [x] Connect Service to Repository to observe settings changes.
 
 ## Phase 4: UI Layer
 - [x] Create `MainViewModel`.
@@ -53,17 +54,21 @@
 - [x] Set up Navigation Host.
 
 ## Phase 5: System Integration & Polish
-- [ ] Implement `BootReceiver`.
-    - [ ] Check `is_polling_enabled` preference.
-    - [ ] Start `LocationSpooferService` if enabled.
-- [ ] Handle Permissions.
-    - [ ] Request Runtime Permissions on app launch.
-    - [ ] Check if App is selected as "Mock Location App" in Developer Options.
-        - [ ] Show dialog/intent to open Developer Options if not set.
-- [ ] Error Handling.
-    - [ ] Handle Network Errors (Retries, User Notification).
-    - [ ] Handle Invalid Token/Auth errors.
-- [ ] UI Polish (Material 3 styling).
+- [x] Implement `BootReceiver`.
+    - [x] Check `is_polling_enabled` preference.
+    - [x] Start `LocationSpooferService` if enabled.
+- [x] Handle Permissions.
+    - [x] Request Runtime Permissions on app launch (Location & Notification request flows added).
+    - [x] Check if App is selected as "Mock Location App" in Developer Options (ViewModel & PermissionChecker).
+        - [x] Show dialog/intent to open Developer Options if not set.
+- [x] Error Handling.
+    ## Security & Token Storage
+    - [x] Store HA token in Encrypted storage using EncryptedSharedPreferences (AndroidX Security Crypto)
+    - [ ] Consider using Keystore-based protection and token rotation in future.
+
+    - [x] Handle Network Errors (Retries, User Notification).
+    - [x] Handle Invalid Token/Auth errors.
+- [x] UI Polish (Material 3 styling).
 
 ## QA & CI
 - [x] Add unit test dependencies and basic tests for data and UI.

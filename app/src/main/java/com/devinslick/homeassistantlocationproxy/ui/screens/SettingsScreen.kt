@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +39,7 @@ fun SettingsScreen(viewModel: MainViewModel, onClose: () -> Unit) {
     Surface(modifier = Modifier.fillMaxWidth()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top, modifier = Modifier.padding(16.dp)) {
             OutlinedTextField(value = baseUrlState.value, onValueChange = { baseUrlState.value = it }, label = { Text("HA Base URL") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = tokenState.value, onValueChange = { tokenState.value = it }, label = { Text("HA Token") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = tokenState.value, onValueChange = { tokenState.value = it }, label = { Text("HA Token") }, modifier = Modifier.fillMaxWidth(), visualTransformation = PasswordVisualTransformation())
             OutlinedTextField(value = entityState.value, onValueChange = { entityState.value = it }, label = { Text("Entity ID") }, modifier = Modifier.fillMaxWidth())
 
             Text(text = "Polling interval: ${pollingInterval}s")
@@ -51,6 +52,9 @@ fun SettingsScreen(viewModel: MainViewModel, onClose: () -> Unit) {
                 onClose()
             }, modifier = Modifier.padding(top = 16.dp)) {
                 Text(text = "Save")
+            }
+            Button(onClick = { viewModel.clearToken() }, modifier = Modifier.padding(top = 8.dp)) {
+                Text(text = "Clear Token")
             }
         }
     }

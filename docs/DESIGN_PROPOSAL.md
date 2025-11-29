@@ -47,6 +47,7 @@ A Service class (`LocationSpooferService`) is required to keep the app alive.
     5.  Check if `is_spoofing_enabled` AND MockLocationPermission is granted.
     6.  Inject location into `LocationManager.setTestProviderLocation`.
     7.  `delay(polling_interval)`
+    8.  Handle transient HA/network errors with limited retries and exponential backoff. If HA returns unauthorized repeatedly, notify user and automatically disable spoofing to avoid incorrect behavior.
 
 ### 3.3. Permissions & Setup
 
@@ -96,7 +97,7 @@ data class HaAttributes(
 
 ## 5. Security & Safety
 
-*   **Token Storage:** Tokens should be stored in EncryptedSharedPreferences (via DataStore).
+*   **Token Storage:** Tokens are stored in `EncryptedSharedPreferences` (via `TokenStore` abstraction), using AndroidX Security Crypto.
 *   **Fail-safe:** If HA returns a 401/404 or the network fails, the spoofing should pause, and the notification should update to "Connection Error" to prevent spoofing 0,0 coordinates.
 
 ## 6. Implementation Steps

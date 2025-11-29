@@ -19,4 +19,6 @@ Security & Privacy:
 - Warn the user that mock locations can affect location-based apps and services.
 - Always provide a clear way to disable spoofing and to revoke the mock location app setting.
 - Ensure that any tokens or sensitive data are stored securely (EncryptedSharedPreferences / DataStore with an encrypted wrapper) and never logged in plaintext.
+	- Tokens are stored using EncryptedSharedPreferences (AndroidX Security Crypto) accessed via `TokenStore`.
+		- On first run after upgrade, tokens stored in DataStore will be migrated into the EncryptedSharedPreferences automatically by `SettingsRepository`.
 

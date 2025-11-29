@@ -33,4 +33,16 @@ class PermissionChecker @Inject constructor(@ApplicationContext private val cont
             return false
         }
     }
+
+    fun hasReceiveBootCompletedPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(context, android.Manifest.permission.RECEIVE_BOOT_COMPLETED) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+
+    /**
+     * Some OEMs prevent apps from auto-starting on boot; present a prompt for known manufacturers.
+     */
+    fun needsAutoStartPrompt(): Boolean {
+        val manu = Build.MANUFACTURER.lowercase().trim()
+        return manu in setOf("xiaomi", "huawei", "oppo", "vivo", "letv", "lenovo", "asus")
+    }
 }

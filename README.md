@@ -13,6 +13,11 @@ Build & Run:
 - Let Android Studio sync Gradle and download the dependencies.
 - Run the `app` module on an Android emulator or device.
 
+Build locally with Gradle wrapper (Windows):
+1. Set `JAVA_HOME` (JDK 17) and `ANDROID_SDK_ROOT`.
+2. If `gradle/wrapper/gradle-wrapper.jar` is not present, either install Gradle locally and run `gradle wrapper --gradle-version 8.2` to generate it, or call `gradle build` directly.
+3. Run `./gradlew assembleDebug` (or `gradlew.bat assembleDebug` on Windows) and the debug APK will be at `app\build\outputs\apk\debug\app-debug.apk`.
+
 Run tests locally:
 - Unit tests: `./gradlew test` (or `gradlew.bat test` on Windows)
 - Android lint: `./gradlew lint` (or `gradlew.bat lint` on Windows)

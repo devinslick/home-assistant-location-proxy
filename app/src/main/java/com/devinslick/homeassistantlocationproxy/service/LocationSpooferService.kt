@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import com.devinslick.homeassistantlocationproxy.R
 import com.devinslick.homeassistantlocationproxy.data.HaAttributes
 import com.devinslick.homeassistantlocationproxy.data.SettingsProvider
 import com.devinslick.homeassistantlocationproxy.network.HaRepository
@@ -22,6 +23,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,20 +39,25 @@ class LocationSpooferService : Service() {
 
     @Inject
     lateinit var haRepository: HaRepository
+    @Inject
+    lateinit var settingsEditor: com.devinslick.homeassistantlocationproxy.data.SettingsEditor
 
     private val serviceJob = SupervisorJob()
     private val scope = CoroutineScope(serviceJob + Dispatchers.Default)
 
-    private lateinit var locationManager: LocationManager
-    private lateinit var notificationManager: NotificationManager
+    @javax.inject.Inject
+    lateinit var locationManager: LocationManager
+
+    @javax.inject.Inject
+    lateinit var notificationManager: NotificationManager
 
     private val CHANNEL_ID = "ha-spoofing-channel"
     private val NOTIFICATION_ID = 101
 
     override fun onCreate() {
         super.onCreate()
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        // locationManager and notificationManager are injected by Hilt
+        // Make sure the notification channel exists
         createNotificationChannel()
     }
 
@@ -73,6 +80,7 @@ class LocationSpooferService : Service() {
 
         pollingJob = scope.launch {
             updateNotification("Polling enabled")
+            var consecutiveUnauthorized = 0
             while (isActive && settings.isPollingEnabled.first()) {
                 val pollingInterval = settings.pollingInterval.first()
                 val isSpoofing = settings.isSpoofingEnabled.first()
@@ -95,7 +103,28 @@ class LocationSpooferService : Service() {
                     }
                     is com.devinslick.homeassistantlocationproxy.network.HaResult.Failure -> {
                         val err = result.error
-                        updateNotification("HA Error: ${err::class.simpleName}")
+                        when (err) {
+                            is com.devinslick.homeassistantlocationproxy.network.HaError.Unauthorized -> {
+                                updateNotification("HA Error: Unauthorized — please check token")
+                                // Increment counter, disable spoofing after repeated unauthorized errors
+                                consecutiveUnauthorized++
+                                if (consecutiveUnauthorized >= 3) {
+                                    try {
+                                        settingsEditor.setIsSpoofingEnabled(false)
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                            }
+                            is com.devinslick.homeassistantlocationproxy.network.HaError.NotFound -> {
+                                updateNotification("HA Error: Entity not found")
+                            }
+                            is com.devinslick.homeassistantlocationproxy.network.HaError.Network -> {
+                                updateNotification("Network error from HA: retrying")
+                            }
+                            else -> {
+                                updateNotification("HA Error: ${err::class.simpleName}")
+                            }
+                        }
                     }
                 }
 
@@ -174,14 +203,5 @@ class LocationSpooferService : Service() {
             // ignore
         }
     }
-package com.devinslick.homeassistantlocationproxy
-
-import android.app.Service
-import android.content.Intent
-import android.os.IBinder
-
-class LocationSpooferService : Service() {
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
 }
+

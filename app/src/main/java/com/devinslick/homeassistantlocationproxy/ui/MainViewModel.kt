@@ -55,6 +55,12 @@ class MainViewModel @Inject constructor(
     private val _isMockLocationApp = MutableStateFlow(false)
     val isMockLocationApp: StateFlow<Boolean> = _isMockLocationApp.asStateFlow()
 
+    private val _needsAutoStartPrompt = MutableStateFlow(false)
+    val needsAutoStartPrompt: StateFlow<Boolean> = _needsAutoStartPrompt.asStateFlow()
+
+    private val _hasBootCompletedPermission = MutableStateFlow(false)
+    val hasBootCompletedPermission: StateFlow<Boolean> = _hasBootCompletedPermission.asStateFlow()
+
     init {
         viewModelScope.launch {
             settings.haBaseUrl.collect { _haBaseUrl.value = it }
@@ -84,7 +90,20 @@ class MainViewModel @Inject constructor(
     }
 
     fun setSpoofingEnabled(enabled: Boolean) {
-        viewModelScope.launch { settingsEditor.setIsSpoofingEnabled(enabled) }
+        viewModelScope.launch {
+            // Validate prerequisites
+            if (enabled) {
+                if (!permissionChecker.hasFineLocationPermission()) {
+                    _statusMessage.value = "Missing location permission"
+                    return@launch
+                }
+                if (!permissionChecker.isMockLocationAppSelected()) {
+                    _statusMessage.value = "Mock location app not selected"
+                    return@launch
+                }
+            }
+            settingsEditor.setIsSpoofingEnabled(enabled)
+        }
     }
 
     fun updateBaseUrl(url: String?) {
@@ -93,6 +112,10 @@ class MainViewModel @Inject constructor(
 
     fun updateToken(token: String?) {
         viewModelScope.launch { settingsEditor.setHaToken(token) }
+    }
+
+    fun clearToken() {
+        viewModelScope.launch { settingsEditor.setHaToken(null) }
     }
 
     fun updateEntityId(entity: String?) {
@@ -128,5 +151,7 @@ class MainViewModel @Inject constructor(
         _hasLocationPermission.value = permissionChecker.hasFineLocationPermission()
         _hasNotificationPermission.value = permissionChecker.hasNotificationPermission()
         _isMockLocationApp.value = permissionChecker.isMockLocationAppSelected()
+        _needsAutoStartPrompt.value = permissionChecker.needsAutoStartPrompt()
+        _hasBootCompletedPermission.value = permissionChecker.hasReceiveBootCompletedPermission()
     }
 }
