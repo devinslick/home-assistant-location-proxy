@@ -173,6 +173,7 @@ class LocationSpooferService : Service() {
             altitude = alt
             accuracy = 1f
             time = System.currentTimeMillis()
+            elapsedRealtimeNanos = android.os.SystemClock.elapsedRealtimeNanos()
         }
 
         try {
