@@ -12,7 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory
  * will create a Retrofit instance for the provided baseUrl. If you call this often, consider
  * caching the retrofit instance.
  */
-class HaApiFactory(private val httpClient: OkHttpClient) {
+open class HaApiFactory(private val httpClient: OkHttpClient) {
 
     fun create(baseUrl: String, token: String?): HaApiService {
         val clientBuilder = httpClient.newBuilder()

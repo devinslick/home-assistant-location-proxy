@@ -28,7 +28,7 @@ sealed interface HaError {
  * results for the Consumers (Service, ViewModel, tests, etc.).
  */
 @Singleton
-class HaNetworkRepository @Inject constructor(
+open class HaNetworkRepository @Inject constructor(
     private val apiFactory: HaApiFactory,
     private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider
 ): HaRepository {
