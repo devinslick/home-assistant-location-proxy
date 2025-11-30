@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -30,13 +32,13 @@ jobs:
         uses: gradle/gradle-build-action@v3
         with:
           arguments: build testDebugUnitTest lint
-          gradle-version: 8.2
+          gradle-version: 8.13
 
       - name: Assemble debug APK
         uses: gradle/gradle-build-action@v3
         with:
           arguments: :app:assembleDebug
-          gradle-version: 8.2
+          gradle-version: 8.13
 
       - name: Upload app-debug.apk artifact
         uses: actions/upload-artifact@v4
