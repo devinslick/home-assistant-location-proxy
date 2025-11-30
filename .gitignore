@@ -34,4 +34,4 @@ google-services.json
 *.hprof
 
 # Ignore generated gradle wrapper jar to keep repo size small (CI uses gradle action)
-gradle/wrapper/gradle-wrapper.jar
+# gradle/wrapper/gradle-wrapper.jar
