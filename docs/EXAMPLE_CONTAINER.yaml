@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-proxy
+  namespace: homeautomation
+  labels:
+    app: android-emulator
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: android-emulator
+  template:
+    metadata:
+      labels:
+        app: android-emulator
+    spec:
+      initContainers:
+      - name: init-android-data
+        image: budtmo/docker-android:emulator_14.0_v3.1.1-p0
+        securityContext:
+          runAsUser: 0
+        command: ["/bin/sh", "-c"]
+        args:
+          - |
+            set -x
+            if [ ! -d "/mnt/data/docker-android" ]; then
+              echo "Populating volume..."
+              cp -a /home/androidusr/. /mnt/data/
+            fi
+            
+            # Always ensure permissions are correct
+            chmod -R 777 /mnt/data
+            
+            echo "Cleaning up stale lock files..."
+            find /mnt/data -name "*.lock" -type f -delete || true
+            
+            # Explicitly remove known lock files
+            rm -f /mnt/data/emulator/multiinstance.lock
+            rm -f /mnt/data/emulator/hardware-qemu.ini.lock
+            
+            echo "Cleanup complete."
+        volumeMounts:
+        - name: location-proxy-volume
+          mountPath: /mnt/data
+      containers:
+      - name: android-emulator
+        image: budtmo/docker-android:emulator_14.0_v3.1.1-p0
+        # Override command to ensure lock files are removed on container restart (e.g. after OOMKill)
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            echo "Pre-start cleanup: Removing stale lock files..."
+            rm -f /home/androidusr/emulator/multiinstance.lock
+            rm -f /home/androidusr/emulator/hardware-qemu.ini.lock
+            echo "Starting application..."
+            exec /home/androidusr/docker-android/mixins/scripts/run.sh
+        env:
+        - name: EMULATOR_DEVICE
+          value: "Samsung Galaxy S10"
+        - name: WEB_VNC
+          value: "true"
+        ports:
+        - containerPort: 6080
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: location-proxy-volume
+          mountPath: /home/androidusr
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/bash", "-c", "nohup bash -c '\necho \"Starting auto-install script...\"\nwhile [ \"$(adb shell getprop sys.boot_completed | tr -d \"\\r\")\" != \"1\" ]; do sleep 5; done\necho \"Device booted.\"\nif ! adb shell pm list packages | grep -q com.devinslick.homeassistantlocationproxy; then\n  echo \"Installing APK...\"\n  adb install /home/androidusr/app-debug.apk\nelse\n  echo \"APK already installed.\"\nfi\n\necho \"Granting permissions...\"\nadb shell pm grant com.devinslick.homeassistantlocationproxy android.permission.ACCESS_FINE_LOCATION\nadb shell pm grant com.devinslick.homeassistantlocationproxy android.permission.ACCESS_COARSE_LOCATION\nadb shell pm grant com.devinslick.homeassistantlocationproxy android.permission.POST_NOTIFICATIONS\n\necho \"Setting battery optimization to Unrestricted...\"\nadb shell dumpsys deviceidle whitelist +com.devinslick.homeassistantlocationproxy\n\necho \"Setting as Mock Location Provider...\"\nadb shell appops set com.devinslick.homeassistantlocationproxy android:mock_location allow\n\necho \"Done.\"\n' > /home/androidusr/install.log 2>&1 &"]
+      volumes:
+      - name: location-proxy-volume
+        persistentVolumeClaim:
+          claimName: location-proxy
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-proxy
+  namespace: homeautomation
+spec:
+  selector:
+    app: android-emulator
+  ports:
+    - protocol: TCP
+      port: 6080
+      targetPort: 6080
+  type: LoadBalancer

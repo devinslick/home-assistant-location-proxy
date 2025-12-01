@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: location-proxy-official
+  namespace: homeautomation
+  labels:
+    app: location-proxy-official
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: location-proxy-official
+  template:
+    metadata:
+      labels:
+        app: location-proxy-official
+    spec:
+      containers:
+      - name: emulator
+        # You must build this image using the google/android-emulator-container-scripts
+        # Example: docker build -t my-repo/android-emulator:32-playstore .
+        image: REPLACE_WITH_YOUR_BUILT_IMAGE
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+        securityContext:
+          privileged: true  # Required for KVM and hardware acceleration
+        ports:
+        - containerPort: 5555
+          name: adb
+        - containerPort: 8554
+          name: grpc
+        - containerPort: 5900
+          name: vnc
+        # Pass arguments to the emulator executable to enable VNC
+        # -vnc 0.0.0.0:0 binds the VNC server to all interfaces on port 5900
+        args: ["-vnc", "0.0.0.0:0"]
+        env:
+        # Inject your ADB keys so you can connect securely
+        # You can create this secret with: kubectl create secret generic adb-keys --from-file=private_key=~/.android/adbkey
+        - name: ADBKEY
+          valueFrom:
+            secretKeyRef:
+              name: adb-keys
+              key: private_key
+              optional: true
+        volumeMounts:
+        - name: dev-kvm
+          mountPath: /dev/kvm
+        # Persist /data so you don't lose login state/apps on restart
+        - name: android-data
+          mountPath: /data
+      volumes:
+      - name: dev-kvm
+        hostPath:
+          path: /dev/kvm
+      - name: android-data
+        persistentVolumeClaim:
+          claimName: android-emulator-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: location-proxy-official
+  namespace: homeautomation
+spec:
+  selector:
+    app: location-proxy-official
+  ports:
+  - port: 5555
+    targetPort: 5555
+    name: adb
+  - port: 8554
+    targetPort: 8554
+    name: grpc
+  - port: 5900
+    targetPort: 5900
+    name: vnc
