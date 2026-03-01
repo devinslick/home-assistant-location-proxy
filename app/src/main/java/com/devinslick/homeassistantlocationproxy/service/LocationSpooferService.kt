@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.location.Location
 import android.location.LocationManager
+import android.location.ProviderProperties
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -180,7 +181,7 @@ class LocationSpooferService : Service() {
 
         try {
             try {
-                locationManager.addTestProvider(provider, false, false, false, false, true, true, true, android.location.Criteria.POWER_LOW, android.location.Criteria.ACCURACY_FINE)
+                locationManager.addTestProvider(provider, false, false, false, false, true, true, true, android.location.Criteria.POWER_LOW, ProviderProperties.ACCURACY_FINE)
             } catch (e: IllegalArgumentException) {
                 // Could already exist or not be addable — ignore
             }
