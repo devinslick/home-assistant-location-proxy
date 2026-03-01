@@ -1,6 +1,7 @@
 package com.devinslick.homeassistantlocationproxy.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,28 +31,36 @@ class SettingsRepository @Inject constructor(
 
     companion object {
         private val KEY_HA_BASE_URL = stringPreferencesKey("ha_base_url")
-        private val KEY_HA_TOKEN = stringPreferencesKey("ha_token")
-        // HA token is now stored in EncryptedSharedPreferences via TokenStore
+        // Legacy key — used only during one-time migration to EncryptedSharedPreferences.
+        // Do not use for new reads or writes.
+        private val KEY_HA_TOKEN_LEGACY = stringPreferencesKey("ha_token")
         private val KEY_ENTITY_ID = stringPreferencesKey("target_entity_id")
         private val KEY_POLLING_INTERVAL = longPreferencesKey("polling_interval_seconds")
         private val KEY_POLLING_ENABLED = booleanPreferencesKey("is_polling_enabled")
         private val KEY_SPOOFING_ENABLED = booleanPreferencesKey("is_spoofing_enabled")
 
         private const val DEFAULT_POLLING_INTERVAL = 30L
+        private const val LOG_TAG = "SettingsRepository"
     }
 
     private val ds = context.dataStore
     private val repoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
-        // Migrate token from DataStore if present to the secure TokenStore and remove it from DataStore.
-        repoScope.launch {
-            val tokenFromDs = ds.data.map { prefs -> prefs[KEY_HA_TOKEN] }.first()
-            if (!tokenFromDs.isNullOrBlank()) {
-                tokenStore.setToken(tokenFromDs)
-                ds.edit { prefs -> prefs.remove(KEY_HA_TOKEN) }
+        // One-time migration: move token from plaintext DataStore to EncryptedSharedPreferences.
+        // The scope is cancelled as soon as the job completes to release resources.
+        val migrationJob = repoScope.launch {
+            try {
+                val tokenFromDs = ds.data.map { prefs -> prefs[KEY_HA_TOKEN_LEGACY] }.first()
+                if (!tokenFromDs.isNullOrBlank()) {
+                    tokenStore.setToken(tokenFromDs)
+                    ds.edit { prefs -> prefs.remove(KEY_HA_TOKEN_LEGACY) }
+                }
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Token migration failed", e)
             }
         }
+        migrationJob.invokeOnCompletion { repoScope.cancel() }
     }
 
     override val haBaseUrl: Flow<String?> = ds.data.map { prefs -> prefs[KEY_HA_BASE_URL] }

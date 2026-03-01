@@ -6,13 +6,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.tooling.preview.Preview
-// hiltViewModel not used here; using Activity scoped ViewModel via viewModels()
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,8 +22,7 @@ class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     @Inject
     lateinit var deviceSettingsHelper: DeviceSettingsHelper
-    @Inject
-    lateinit var serviceController: com.devinslick.homeassistantlocationproxy.service.ServiceController
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val requestLocationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -42,10 +34,6 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             val navController = rememberNavController()
-            val isPollingEnabled by mainViewModel.isPollingEnabled.collectAsState()
-            LaunchedEffect(isPollingEnabled) {
-                if (isPollingEnabled) serviceController.startService() else serviceController.stopService()
-            }
 
             MaterialTheme {
                 Surface {
@@ -104,16 +92,4 @@ class MainActivity : ComponentActivity() {
         // Refresh permission states when Activity resumes
         mainViewModel.refreshPermissions()
     }
-    
-}
-
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name, Location Proxy App")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    Greeting("Android")
 }

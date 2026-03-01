@@ -39,4 +39,7 @@ class FakeSettingsProvider(
         _token.value = value
     }
 
+    fun setIsPollingEnabled(value: Boolean) {
+        _isPolling.value = value
+    }
 }

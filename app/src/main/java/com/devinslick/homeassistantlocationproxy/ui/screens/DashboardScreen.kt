@@ -23,16 +23,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
-import androidx.compose.material3.Text as MText
+import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.viewinterop.AndroidView
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import android.preference.PreferenceManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +57,7 @@ fun DashboardScreen(
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column {
-            CenterAlignedTopAppBar(title = { MText("HA Location Proxy") }, actions = {
+            CenterAlignedTopAppBar(title = { Text("HA Location Proxy") }, actions = {
                 IconButton(onClick = { onOpenSettings() }) { Icon(Icons.Default.Map, contentDescription = "Open Settings") }
             })
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Top) {
@@ -89,9 +88,9 @@ fun DashboardScreen(
             val lat = lastAttributes?.latitude
             val lon = lastAttributes?.longitude
             if (lat != null && lon != null) {
-                val context = LocalContext.current
-                // Initialize OSMDroid configuration
-                org.osmdroid.config.Configuration.getInstance().load(context, PreferenceManager.getDefaultSharedPreferences(context))
+                // Track the last rendered position to avoid clearing/re-adding the marker
+                // on every recomposition when the location hasn't changed.
+                val lastRenderedPoint = remember { mutableStateOf<GeoPoint?>(null) }
 
                 AndroidView(
                     factory = { ctx ->
@@ -103,22 +102,26 @@ fun DashboardScreen(
                     },
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f) // Take available space
+                        .weight(1f)
                         .padding(8.dp),
                     update = { mapView ->
                         val point = GeoPoint(lat, lon)
-                        mapView.controller.setCenter(point)
-                        mapView.overlays.clear()
-                        val marker = Marker(mapView)
-                        marker.position = point
-                        marker.title = lastAttributes?.friendly_name ?: "Vehicle"
-                        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        mapView.overlays.add(marker)
-                        mapView.invalidate() // Redraw
+                        val prev = lastRenderedPoint.value
+                        if (prev == null || prev.latitude != lat || prev.longitude != lon) {
+                            mapView.controller.setCenter(point)
+                            mapView.overlays.clear()
+                            val marker = Marker(mapView)
+                            marker.position = point
+                            marker.title = lastAttributes?.friendly_name ?: "Vehicle"
+                            marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            mapView.overlays.add(marker)
+                            mapView.invalidate()
+                            lastRenderedPoint.value = point
+                        }
                     }
                 )
-                
-                androidx.compose.material3.Button(onClick = { 
+
+                androidx.compose.material3.Button(onClick = {
                     onOpenMaps(lat, lon, lastAttributes?.friendly_name)
                 }, modifier = Modifier.padding(8.dp)) {
                     Text(text = "Open in External Maps")

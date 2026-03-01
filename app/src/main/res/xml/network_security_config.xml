@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security configuration for Home Assistant Location Proxy.
+
+  Android 9+ blocks cleartext (HTTP) traffic by default. This app is designed to communicate
+  with a local Home Assistant instance which may run on HTTP (especially on LAN without TLS).
+  Cleartext is permitted globally here because the target server is user-configured and
+  may be on an internal network. Users are encouraged to configure https:// in settings.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

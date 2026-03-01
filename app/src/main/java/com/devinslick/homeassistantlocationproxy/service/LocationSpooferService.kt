@@ -100,7 +100,9 @@ class LocationSpooferService : Service() {
         pollingJob = scope.launch {
             updateNotification("Polling enabled")
             var consecutiveUnauthorized = 0
-            while (isActive && settings.isPollingEnabled.first()) {
+            // The outer isPollingEnabled collector cancels this job when polling is disabled;
+            // no need to re-check isPollingEnabled inside the loop.
+            while (isActive) {
                 val pollingInterval = settings.pollingInterval.first()
                 val isSpoofing = settings.isSpoofingEnabled.first()
 
@@ -108,6 +110,7 @@ class LocationSpooferService : Service() {
 
                 when (result) {
                     is com.devinslick.homeassistantlocationproxy.network.HaResult.Success -> {
+                        consecutiveUnauthorized = 0
                         val attrs = result.state.attributes
                         updateNotification("Last: ${attrs.latitude}, ${attrs.longitude}")
                         if (isSpoofing) {
@@ -125,13 +128,12 @@ class LocationSpooferService : Service() {
                         when (err) {
                             is com.devinslick.homeassistantlocationproxy.network.HaError.Unauthorized -> {
                                 updateNotification("HA Error: Unauthorized — please check token")
-                                // Increment counter, disable spoofing after repeated unauthorized errors
                                 consecutiveUnauthorized++
                                 if (consecutiveUnauthorized >= 3) {
-                                    try {
-                                        settingsEditor.setIsSpoofingEnabled(false)
-                                    } catch (_: Exception) {
-                                    }
+                                    // Token is clearly invalid; disable both spoofing and polling
+                                    // to stop making pointless API calls until the user fixes it.
+                                    try { settingsEditor.setIsSpoofingEnabled(false) } catch (_: Exception) {}
+                                    try { settingsEditor.setIsPollingEnabled(false) } catch (_: Exception) {}
                                 }
                             }
                             is com.devinslick.homeassistantlocationproxy.network.HaError.NotFound -> {
@@ -158,6 +160,7 @@ class LocationSpooferService : Service() {
         pollingJob = null
     }
 
+    @android.annotation.SuppressLint("WrongConstant")
     private fun injectMockLocation(attrs: HaAttributes) {
         val lat = attrs.latitude ?: return
         val lon = attrs.longitude ?: return
