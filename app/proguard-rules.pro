@@ -39,3 +39,8 @@
 # ── OSMDroid ──────────────────────────────────────────────────────────────────
 -keep class org.osmdroid.** { *; }
 -dontwarn org.osmdroid.**
+
+# ── Optional transitive dependencies ──────────────────────────────────────────
+# Referenced by transitive deps (osmdroid, OkHttp) but not used at runtime.
+-dontwarn com.google.api.client.**
+-dontwarn org.joda.time.**
