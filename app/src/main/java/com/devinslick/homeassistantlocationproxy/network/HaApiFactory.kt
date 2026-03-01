@@ -18,7 +18,7 @@ open class HaApiFactory(private val httpClient: OkHttpClient) {
     private var cachedService: HaApiService? = null
 
     @Synchronized
-    fun create(baseUrl: String, token: String?): HaApiService {
+    open fun create(baseUrl: String, token: String?): HaApiService {
         val normalizedUrl = normalizeBaseUrl(baseUrl)
         val existing = cachedService
         if (existing != null && normalizedUrl == cachedBaseUrl && token == cachedToken) {
