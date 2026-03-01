@@ -4,7 +4,6 @@ import com.devinslick.homeassistantlocationproxy.data.HaAttributes
 import com.devinslick.homeassistantlocationproxy.data.HaStateResponse
 import com.devinslick.homeassistantlocationproxy.data.SettingsEditor
 import com.devinslick.homeassistantlocationproxy.network.FakeSettingsProvider
-import com.devinslick.homeassistantlocationproxy.network.HaRepository
 import com.devinslick.homeassistantlocationproxy.network.HaResult
 import com.devinslick.homeassistantlocationproxy.permissions.PermissionChecker
 import com.devinslick.homeassistantlocationproxy.service.ServiceController
@@ -45,7 +44,7 @@ class MainViewModelTest {
         val attrs = HaAttributes(44.5, -99.2, null, "mycar")
         val state = HaStateResponse("device_tracker.my_car", "home", attrs, "2025-11-28T00:00:00")
 
-        val fakeHaRepo = HaRepositoryFake(HaResult.Success(state))
+        val fakeHaRepo = FakeHaNetworkRepository(HaResult.Success(state))
         val fakeSettings = FakeSettingsProvider()
         val mockPermissionChecker = mockk<PermissionChecker>(relaxed = true)
 
@@ -55,7 +54,7 @@ class MainViewModelTest {
         val vm = MainViewModel(
             settings = fakeSettings,
             settingsEditor = noOpSettingsEditor,
-            haRepository = fakeHaRepo as HaRepository,
+            haRepository = fakeHaRepo,
             permissionChecker = mockPermissionChecker,
             serviceController = noOpServiceController
         )
@@ -74,7 +73,7 @@ class MainViewModelTest {
         val fakeSettings = FakeSettingsProvider(isPollingEnabled = false)
         val mockPermissionChecker = mockk<PermissionChecker>(relaxed = true)
         val mockServiceController = mockk<ServiceController>(relaxed = true)
-        val fakeHaRepo = HaRepositoryFake(HaResult.Failure(com.devinslick.homeassistantlocationproxy.network.HaError.MissingConfig))
+        val fakeHaRepo = FakeHaNetworkRepository(HaResult.Failure(com.devinslick.homeassistantlocationproxy.network.HaError.MissingConfig))
 
         val testDispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(testDispatcher)
@@ -82,7 +81,7 @@ class MainViewModelTest {
         val vm = MainViewModel(
             settings = fakeSettings,
             settingsEditor = noOpSettingsEditor,
-            haRepository = fakeHaRepo as HaRepository,
+            haRepository = fakeHaRepo,
             permissionChecker = mockPermissionChecker,
             serviceController = mockServiceController
         )
