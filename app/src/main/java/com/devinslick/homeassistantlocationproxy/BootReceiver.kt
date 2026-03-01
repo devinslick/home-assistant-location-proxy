@@ -11,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 class BootReceiver : BroadcastReceiver() {
     private val logTag = "BootReceiver"
@@ -20,11 +19,13 @@ class BootReceiver : BroadcastReceiver() {
         if (context == null || intent == null) return
 
         if (Intent.ACTION_BOOT_COMPLETED == intent.action) {
-            // Access Hilt components via entry point since BroadcastReceiver isn't injected
+            // goAsync() lets us suspend past onReceive() returning so Android doesn't kill
+            // the process before the coroutine finishes reading DataStore and starting the service.
+            val pendingResult = goAsync()
+
             val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, BootEntryPoint::class.java)
             val settingsRepo = entryPoint.settingsRepository()
 
-            // Launch a coroutine to check settings and start the service if polling is enabled.
             CoroutineScope(Dispatchers.Default).launch {
                 try {
                     val shouldPoll = settingsRepo.isPollingEnabled.first()
@@ -38,6 +39,8 @@ class BootReceiver : BroadcastReceiver() {
                     }
                 } catch (e: Exception) {
                     Log.w(logTag, "Error checking polling preference on boot: ${e.localizedMessage}")
+                } finally {
+                    pendingResult.finish()
                 }
             }
         }

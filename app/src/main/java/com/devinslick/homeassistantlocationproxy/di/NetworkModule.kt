@@ -1,5 +1,6 @@
 package com.devinslick.homeassistantlocationproxy.di
 
+import com.devinslick.homeassistantlocationproxy.BuildConfig
 import com.devinslick.homeassistantlocationproxy.network.HaApiFactory
 import dagger.Module
 import dagger.Provides
@@ -17,14 +18,21 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient {
-        val logging = HttpLoggingInterceptor()
-        logging.setLevel(HttpLoggingInterceptor.Level.BASIC)
-
-        return OkHttpClient.Builder()
+        val builder = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(15, TimeUnit.SECONDS)
-            .addInterceptor(logging)
-            .build()
+            .writeTimeout(15, TimeUnit.SECONDS)
+
+        // Only attach the logging interceptor in debug builds to avoid log noise in production
+        // and to prevent accidental leakage of request headers (e.g. Authorization tokens)
+        // if the log level is ever increased to HEADERS or BODY.
+        if (BuildConfig.DEBUG) {
+            val logging = HttpLoggingInterceptor()
+            logging.setLevel(HttpLoggingInterceptor.Level.BASIC)
+            builder.addInterceptor(logging)
+        }
+
+        return builder.build()
     }
 
     @Provides

@@ -1,12 +1,11 @@
 package com.devinslick.homeassistantlocationproxy.data
 
 import android.content.SharedPreferences
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class EncryptedTokenStore @Inject constructor(private val prefs: SharedPreferences) : TokenStore {
@@ -28,8 +27,13 @@ class EncryptedTokenStore @Inject constructor(private val prefs: SharedPreferenc
     }
 
     override suspend fun setToken(token: String?) {
-        prefs.edit().run {
-            if (token == null) remove(KEY_HA_TOKEN) else putString(KEY_HA_TOKEN, token)
-        }.apply()
+        // Use commit() (synchronous) so callers can trust the write is durable before returning.
+        // apply() is async and risks losing data if the process dies before the write completes.
+        withContext(Dispatchers.IO) {
+            prefs.edit().run {
+                if (token == null) remove(KEY_HA_TOKEN) else putString(KEY_HA_TOKEN, token)
+                commit()
+            }
+        }
     }
 }

@@ -6,15 +6,25 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 /**
- * Provides a simple factory to create a `HaApiService` with a runtime base URL and token.
+ * Provides a factory to create a `HaApiService` with a runtime base URL and token.
  *
- * We use `@Url` on endpoints or provide the entity endpoint relative to a baseUrl. The factory
- * will create a Retrofit instance for the provided baseUrl. If you call this often, consider
- * caching the retrofit instance.
+ * The created service is cached and reused as long as the baseUrl and token are unchanged,
+ * so OkHttp's connection pool is preserved across polling iterations.
  */
 open class HaApiFactory(private val httpClient: OkHttpClient) {
 
+    private var cachedBaseUrl: String? = null
+    private var cachedToken: String? = null
+    private var cachedService: HaApiService? = null
+
+    @Synchronized
     fun create(baseUrl: String, token: String?): HaApiService {
+        val normalizedUrl = normalizeBaseUrl(baseUrl)
+        val existing = cachedService
+        if (existing != null && normalizedUrl == cachedBaseUrl && token == cachedToken) {
+            return existing
+        }
+
         val clientBuilder = httpClient.newBuilder()
         if (!token.isNullOrBlank()) {
             clientBuilder.addInterceptor { chain ->
@@ -25,21 +35,25 @@ open class HaApiFactory(private val httpClient: OkHttpClient) {
             }
         }
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl(normalizeBaseUrl(baseUrl))
+        val service = Retrofit.Builder()
+            .baseUrl(normalizedUrl)
             .client(clientBuilder.build())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
+            .create(HaApiService::class.java)
 
-        return retrofit.create(HaApiService::class.java)
+        cachedBaseUrl = normalizedUrl
+        cachedToken = token
+        cachedService = service
+        return service
     }
 
     private fun normalizeBaseUrl(url: String): String {
         var normalized = url
         if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
-            normalized = "http://$normalized"
+            // Default to https:// — most HA instances support it and Android 9+ blocks plaintext.
+            normalized = "https://$normalized"
         }
-        // ensure Url ends with a trailing slash for Retrofit
         return if (!normalized.endsWith("/")) "$normalized/" else normalized
     }
 }

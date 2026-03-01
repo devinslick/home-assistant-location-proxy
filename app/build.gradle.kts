@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.devinslick.homeassistantlocationproxy"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.devinslick.homeassistantlocationproxy"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "0.1"
 
@@ -22,7 +22,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -40,6 +41,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -72,10 +74,8 @@ dependencies {
     // AndroidX Security Crypto for EncryptedSharedPreferences
     implementation("androidx.security:security-crypto:1.1.0")
 
-    // OpenStreetMap (osmdroid)
+    // OpenStreetMap (osmdroid) — only the core module is needed for MAPNIK tiles
     implementation("org.osmdroid:osmdroid-android:6.1.18")
-    implementation("org.osmdroid:osmdroid-wms:6.1.18")
-    implementation("org.osmdroid:osmdroid-mapsforge:6.1.18")
 
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.0")

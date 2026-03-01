@@ -3,23 +3,27 @@ package com.devinslick.homeassistantlocationproxy.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devinslick.homeassistantlocationproxy.data.HaAttributes
+import com.devinslick.homeassistantlocationproxy.data.SettingsEditor
+import com.devinslick.homeassistantlocationproxy.data.SettingsProvider
+import com.devinslick.homeassistantlocationproxy.network.HaError
+import com.devinslick.homeassistantlocationproxy.network.HaRepository
+import com.devinslick.homeassistantlocationproxy.network.HaResult
 import com.devinslick.homeassistantlocationproxy.permissions.PermissionChecker
-import com.devinslick.homeassistantlocationproxy.data.SettingsRepository
-import com.devinslick.homeassistantlocationproxy.network.HaNetworkRepository
+import com.devinslick.homeassistantlocationproxy.service.ServiceController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val settings: com.devinslick.homeassistantlocationproxy.data.SettingsProvider,
-    private val settingsEditor: com.devinslick.homeassistantlocationproxy.data.SettingsEditor,
-    private val haRepository: com.devinslick.homeassistantlocationproxy.network.HaRepository,
-    private val permissionChecker: PermissionChecker
+    private val settings: SettingsProvider,
+    private val settingsEditor: SettingsEditor,
+    private val haRepository: HaRepository,
+    private val permissionChecker: PermissionChecker,
+    private val serviceController: ServiceController
 ) : ViewModel() {
 
     private val _isPollingEnabled = MutableStateFlow(false)
@@ -62,6 +66,15 @@ class MainViewModel @Inject constructor(
     val hasBootCompletedPermission: StateFlow<Boolean> = _hasBootCompletedPermission.asStateFlow()
 
     init {
+        // Collect polling state and reactively start/stop the foreground service.
+        // This handles both the initial state on app launch and subsequent toggle changes,
+        // removing the need for a LaunchedEffect in the UI layer.
+        viewModelScope.launch {
+            settings.isPollingEnabled.collect { enabled ->
+                _isPollingEnabled.value = enabled
+                if (enabled) serviceController.startService() else serviceController.stopService()
+            }
+        }
         viewModelScope.launch {
             settings.haBaseUrl.collect { _haBaseUrl.value = it }
         }
@@ -73,9 +86,6 @@ class MainViewModel @Inject constructor(
         }
         viewModelScope.launch {
             settings.pollingInterval.collect { _pollingInterval.value = it }
-        }
-        viewModelScope.launch {
-            settings.isPollingEnabled.collect { _isPollingEnabled.value = it }
         }
         viewModelScope.launch {
             settings.isSpoofingEnabled.collect { _isSpoofingEnabled.value = it }
@@ -130,17 +140,17 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             _statusMessage.value = "Refreshing..."
             when (val r = haRepository.fetchEntityState()) {
-                is com.devinslick.homeassistantlocationproxy.network.HaResult.Success -> {
+                is HaResult.Success -> {
                     _lastAttributes.value = r.state.attributes
                     _statusMessage.value = "OK"
                 }
-                is com.devinslick.homeassistantlocationproxy.network.HaResult.Failure -> {
+                is HaResult.Failure -> {
                     _statusMessage.value = when (r.error) {
-                        is com.devinslick.homeassistantlocationproxy.network.HaError.MissingConfig -> "Missing Config"
-                        is com.devinslick.homeassistantlocationproxy.network.HaError.Unauthorized -> "Unauthorized"
-                        is com.devinslick.homeassistantlocationproxy.network.HaError.NotFound -> "Not Found"
-                        is com.devinslick.homeassistantlocationproxy.network.HaError.Network -> "Network Error"
-                        is com.devinslick.homeassistantlocationproxy.network.HaError.Unknown -> "Unknown Error"
+                        is HaError.MissingConfig -> "Missing Config"
+                        is HaError.Unauthorized -> "Unauthorized"
+                        is HaError.NotFound -> "Not Found"
+                        is HaError.Network -> "Network Error"
+                        is HaError.Unknown -> "Unknown Error"
                     }
                 }
             }

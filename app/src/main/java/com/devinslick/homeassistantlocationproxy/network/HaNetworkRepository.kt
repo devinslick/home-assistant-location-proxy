@@ -2,7 +2,6 @@ package com.devinslick.homeassistantlocationproxy.network
 
 import android.util.Log
 import com.devinslick.homeassistantlocationproxy.data.HaStateResponse
-import com.devinslick.homeassistantlocationproxy.data.SettingsRepository
 import kotlinx.coroutines.flow.first
 import java.io.IOException
 import javax.inject.Inject
@@ -45,8 +44,8 @@ open class HaNetworkRepository @Inject constructor(
         val token = settings.haToken.first()
         val entityId = settings.entityId.first()
 
-        if (baseUrl.isNullOrBlank() || entityId.isNullOrBlank()) {
-            Log.w(logTag, "Missing configuration - baseUrl: $baseUrl, entityId: $entityId")
+        if (baseUrl.isNullOrBlank() || entityId.isNullOrBlank() || token.isNullOrBlank()) {
+            Log.w(logTag, "Missing configuration - baseUrl: $baseUrl, entityId: $entityId, token set: ${!token.isNullOrBlank()}")
             return HaResult.Failure(HaError.MissingConfig)
         }
 
@@ -57,50 +56,37 @@ open class HaNetworkRepository @Inject constructor(
             return HaResult.Failure(HaError.Network(e))
         }
 
-        // Retry logic for transient errors (network / server error codes)
         val maxRetries = 3
-        var attempt = 0
         var backoff = 1000L
-        while (true) {
-            attempt++
+        for (attempt in 1..maxRetries) {
             try {
                 val response = api.getState(entityId)
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    return HaResult.Success(body)
+                return if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null) {
+                        HaResult.Success(body)
+                    } else {
+                        Log.w(logTag, "Empty response body for entityId: $entityId")
+                        HaResult.Failure(HaError.Unknown(response.code()))
+                    }
                 } else {
-                    Log.w(logTag, "Empty response body for entityId: $entityId")
-                    return HaResult.Failure(HaError.Unknown(response.code()))
-                }
-            } else {
-                when (response.code()) {
-                    401 -> return HaResult.Failure(HaError.Unauthorized)
-                    404 -> return HaResult.Failure(HaError.NotFound)
-                    else -> {
-                        Log.w(logTag, "HA API error ${response.code()} for entityId: $entityId")
-                        return HaResult.Failure(HaError.Unknown(response.code()))
+                    when (response.code()) {
+                        401 -> HaResult.Failure(HaError.Unauthorized)
+                        404 -> HaResult.Failure(HaError.NotFound)
+                        else -> {
+                            Log.w(logTag, "HA API error ${response.code()} for entityId: $entityId")
+                            HaResult.Failure(HaError.Unknown(response.code()))
+                        }
                     }
                 }
-            }
-            } catch (e: IOException) {
-                Log.w(logTag, "Network error when calling HA API (attempt=$attempt)", e)
-                if (attempt >= maxRetries) return HaResult.Failure(HaError.Network(e))
-                // Exponential backoff
-                kotlinx.coroutines.delay(backoff)
-                backoff *= 2
-                continue
             } catch (t: Throwable) {
-                Log.w(logTag, "Unexpected error when calling HA API (attempt=$attempt)", t)
+                Log.w(logTag, "Network error when calling HA API (attempt=$attempt)", t)
                 if (attempt >= maxRetries) return HaResult.Failure(HaError.Network(t))
                 kotlinx.coroutines.delay(backoff)
                 backoff *= 2
-                continue
             }
-            // If we reached here, we completed successfully or returned for a specific error
-            break
         }
-        // Shouldn't reach here normally
+        // All retries threw exceptions and the last one returned above; unreachable in practice.
         return HaResult.Failure(HaError.Unknown(null))
     }
 }
